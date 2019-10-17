@@ -122,23 +122,29 @@ namespace fingerprint
             String[] studentDirectories = Directory.GetDirectories("./students");
             Int32 studentId;
             Byte[] saved;
+
+            Int32 bestMatchScore = 0;
+            Int32 bestMatchStudentId = 0;
+
             foreach (string studentDirectory in studentDirectories)
             {
                 studentId = Int32.Parse(new DirectoryInfo(studentDirectory).Name);
                 saved = File.ReadAllBytes(studentDirectory + "/fingerprint.bin");
-                if (IsMatch(scan, saved))
+                Int32 matchScore = MatchScore(scan, saved);
+                if (matchScore > bestMatchScore)
                 {
-                    return studentId;
+                    bestMatchScore = matchScore;
+                    bestMatchStudentId = studentId;
                 }
             }
-            return 0;
+            return bestMatchStudentId;
         }
 
-        private bool IsMatch(Byte[] scan, Byte[] saved)
+        private Int32 MatchScore(Byte[] scan, Byte[] saved)
         {
-            Boolean doesMatch = false;
-            fpm.MatchTemplate(scan, saved, SGFPMSecurityLevel.NORMAL, ref doesMatch);
-            return doesMatch;
+            Int32 matchScore = 0;
+            fpm.GetMatchingScore(scan, saved, ref matchScore);
+            return matchScore - 80;
         }
         private void InitializeComponent()
         {
